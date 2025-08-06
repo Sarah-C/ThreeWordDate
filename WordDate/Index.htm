@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<html>
+<head runat="server">
+<title></title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
+<script type="text/javascript" src="jquery-ui-sliderAccess.js"></script>
+<script type="text/javascript" src="jquery-ui-timepicker-addon.js"></script>
+<link rel="stylesheet" media="all" type="text/css" href="https://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css" />
+<link rel="stylesheet" media="all" type="text/css" href="jquery-ui-timepicker-addon.css" />
+<style type="text/css">
+body, img, p, h1, h2, h3, h4, h5, h6, form, table, td, ul, ol, li, dl, dt, dd, pre, blockquote, fieldset, label {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	background-color: #777;
+	border-top: solid 10px #7b94b2;
+	font: 90% Arial, Helvetica, sans-serif;
+	padding: 20px;
+}
+
+h1, h2, h3 {
+	margin: 10px 0;
+}
+
+h1 {
+}
+
+h2 {
+	color: #f66;
+}
+
+h3 {
+	color: #6b84a2;
+}
+
+p {
+	margin: 10px 0;
+}
+
+a {
+	color: #7b94b2;
+}
+
+ul, ol {
+	margin: 10px 0 10px 40px;
+}
+
+li {
+	margin: 4px 0;
+}
+
+pre {
+	font-size: 12px;
+	line-height: 16px;
+	padding: 5px 5px 5px 10px;
+	margin: 10px 0;
+	background-color: #e4f4d4;
+	border-left: solid 5px #9EC45F;
+	overflow: auto;
+	tab-size: 4;
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	-webkit-tab-size: 4;
+}
+
+.wrapper {
+	background-color: #ffffff;
+	width: 470px;
+	border: solid 1px #eeeeee;
+	padding: 20px;
+	padding-top: 0px;
+	margin: 0 auto;
+}
+
+.ui-datepicker {
+	font-size: 85%;
+}
+
+.clear {
+	clear: both;
+}
+
+input {
+	border: solid 1px #aaa;
+	padding: 4px;
+	width: 340px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	display: inline-block;
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+	<h1>Date Words</h1>
+	Remember an important date and time using three simple words!<br />
+	<br />
+	Select a date to find the unique 3 words:<br />
+	<input type="text" id="dateEntry" value="" /> 
+	<div id="wordOutput">...</div>
+	<br />
+	<hr />
+	<br />
+	Input the 3 unique words to find the date.<br />
+	(e.g. RobustSugaryMosquito):<br />
+	<input type="text" id="wordEntry" value="" /> <button onclick="getDate();return false;">Get date/time</button>
+	<div id="dateOutput">...</div>
+</div>
+<script>
+$('#dateEntry').datetimepicker({
+	hourGrid: 4,
+	minuteGrid: 10,
+	dateFormat: 'yy,mm,dd',
+	timeFormat: "HH,mm,ss",
+	addSliderAccess: true,
+	separator: ',',
+	sliderAccessArgs: { touchonly: false },
+	minDate: new Date(2010, 1, 1, 12, 0),
+	maxDate: new Date(2100, 1, 1, 12, 0),
+	onClose: function (dateText, inst) { getNewWord(dateText, inst); }
+});
+
+function getNewWord(dateCode, inst) {
+	var dateObject = dateCodeToDate(dateCode);
+	$('#dateEntry').val(dateObject);
+	$.ajax({
+		url: "WordDate.aspx?data=" + dateCode,
+		dataType: 'text',
+		success: function(returnedWords) {
+			$("#wordOutput").html("Word phrase for your date/time: <b style='color: green;'>" + returnedWords + "</b>");
+			}
+		});
+}
+
+function getDate(){
+	var words = $("#wordEntry").val();
+	$.ajax({
+		url: "WordDate.aspx?data=" + words,
+		dataType: 'text',
+		success: function(returnedDate) {
+			var dateParts = returnedDate.split(',');
+			var newDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], dateParts[3], dateParts[4], dateParts[5]);
+			$("#dateOutput").html("<b style='color: green;'>" + dateString(newDate) + "</b>");
+			}
+		});
+}
+
+function dateCodeToDate(dateCode){
+	var dateParts = dateCode.split(',');
+	var newDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], dateParts[3], dateParts[4], dateParts[5]);
+	return dateString(newDate);
+}
+
+function dateString(date){
+	var monthNames = [
+		"January", "February", "March",
+		"April", "May", "June", "July",
+		"August", "September", "October",
+		"November", "December"
+		];
+	var day = date.getDate();
+	var monthIndex = date.getMonth();
+	var year = date.getFullYear();
+	var hour = date.getHours();
+	var minute = date.getMinutes();
+	var seconds = date.getSeconds();
+	
+	return day + ' ' + monthNames[monthIndex] + ' ' + year + ", " + hour + " hours, " + minute + " minutes, " + seconds + " seconds";
+}
+</script>
+</body>
+</html>
